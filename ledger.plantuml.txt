@@ -1,0 +1,147 @@
+@startuml
+!theme mars
+
+!define hideClass(class) hide class class
+
+skin rose
+
+title Ledger - Class Diagram
+
+skinparam class {
+  BackgroundColor LightGray
+}
+
+skinparam classStyle {
+  BackgroundColor LightYellow
+  BorderColor Black
+  FontColor Black
+}
+
+class Ledger #LightYellow {
+  +String id
+  +String name*
+  +String description
+  +Object reference
+  +Object metadata
+  +DateTime created_at
+  +DateTime deleted_at
+  +DateTime updated_at
+}
+
+class LedgerAccount #LightYellow {
+  +String id
+  +String name*
+  +String description
+  +AccountType type*
+  +String currency*
+  +Balance Balance
+  +Object metadata
+  +Int version
+  +Object reference
+  +DateTime created_at
+  +DateTime deleted_at
+  +DateTime updated_at
+  +adjustment
+}
+
+class LedgerTransaction #LightYellow {
+  +String id
+  +String description
+  +TransactionStatus status
+  +Object metadata
+  +DateTime created_at
+  +DateTime posted_at
+  +DateTime effective_at
+  +TransactionAdjustment adjustment
+}
+class LedgerEntry #LightYellow {
+  +String id
+  +AccountType type
+  +Money amount
+  +Int version
+  +[Condition] conditions
+  +TransactionStatus status
+}
+
+enum AccountType #LightBlue {
+  +credit
+  +debit
+}
+
+enum TransactionStatus #LightBlue  {
+  +pending
+  +posted
+  +voided
+}
+
+
+struct Balance {
+  +Money credits
+  +Money debits
+  +Money amount
+}
+
+enum AdjustmentType #LightBlue  {
+  +complete_reversal
+  +partial_reversal
+}
+
+struct TransactionAdjustment {
+  +AdjustmentType type
+  +String id
+}
+
+struct TransactionReference {
+  +String? id
+  +TransactionReferenceType? type
+}
+
+enum TransactionReferenceType #LightBlue  {
+  +transaction_id
+  +other
+}
+
+struct Condition {
+  +ConditionField field
+  +Money available_balance
+  +ConditionOperator operator
+  +String value
+}
+
+enum ConditionField #LightBlue  {
+  +version
+  +pending_balance
+  +posted_balance
+}
+
+enum ConditionOperator #LightBlue  {
+  +eq
+  +gt
+  +gte
+  +lt
+  +lte
+}
+
+
+Ledger "id (1)" o-down- "ledger_id (*)" LedgerAccount
+LedgerTransaction "[ledger_entries] (1)" o-down- "transaction_id (*)" LedgerEntry
+Ledger "id (1)" o-down- "ledger_id (*)" LedgerTransaction
+LedgerAccount "id (1)" o-down- "ledger_account_id (*)" LedgerEntry
+
+LedgerTransaction "1" - "adjustment.id (1)" LedgerTransaction
+
+TransactionAdjustment ..> LedgerTransaction
+AdjustmentType <.up. TransactionAdjustment
+Balance <.. LedgerAccount
+AccountType <.. LedgerAccount
+AccountType <.. LedgerEntry
+TransactionStatus <.. LedgerTransaction
+TransactionReference <.. LedgerTransaction
+TransactionReferenceType <.up. TransactionReference
+Condition <.. LedgerEntry
+ConditionField <.up. Condition
+ConditionOperator <.up. Condition
+TransactionStatus <.. LedgerEntry
+
+
+@enduml
